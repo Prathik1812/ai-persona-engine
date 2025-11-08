@@ -82,8 +82,10 @@ target/
 profile_default/
 ipython_config.py
 
+# Project Details
 firebase_config.json
 users/
+.env
 
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
