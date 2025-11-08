@@ -1,6 +1,3 @@
-import firebase_admin
-from firebase_admin import credentials, auth, db
-
 import streamlit as st
 import os
 import json
@@ -13,37 +10,38 @@ from docx import Document
 from pathlib import Path
 import re
 import requests
+import firebase_admin
+from firebase_admin import credentials, auth, db
 
-# ------------------------
+# ------------------------------------------------
 # Streamlit Page Config
-# ------------------------
+# ------------------------------------------------
 st.set_page_config(page_title="Persona Studio", layout="wide")
 
-# ------------------------
-# Firebase Setup
-# ------------------------
+# ------------------------------------------------
+# Firebase Initialization
+# ------------------------------------------------
 if not firebase_admin._apps:
-    cred = credentials.Certificate("firebase_config.json")  # your Firebase admin JSON
+    # Load service account JSON from secrets
+    cred_dict = json.loads(st.secrets["FIREBASE_SERVICE_ACCOUNT"])
+    cred = credentials.Certificate(cred_dict)
+
     firebase_admin.initialize_app(cred, {
-        'databaseURL': 'https://your-database-name.firebaseio.com/'  # Replace with your Firebase Realtime DB URL
+        'databaseURL': st.secrets["FIREBASE_DATABASE_URL"]
     })
 
-# ------------------------
+# ------------------------------------------------
 # Constants
-# ------------------------
+# ------------------------------------------------
 DATA_DIR = Path("users")
 DATA_DIR.mkdir(exist_ok=True)
 
-FIREBASE_API_KEY = os.getenv("FIREBASE_API_KEY")  # Web API key from Firebase project settings
+FIREBASE_API_KEY = st.secrets["FIREBASE_API_KEY"]
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-# ------------------------
-# OpenAI Setup (Backend-only)
-# ------------------------
-openai.api_key = os.getenv("OPENAI_API_KEY")  # set as environment variable for security
-
-# ------------------------
+# ------------------------------------------------
 # Firebase Helper Functions
-# ------------------------
+# ------------------------------------------------
 def firebase_signup(email, password, name):
     url = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FIREBASE_API_KEY}"
     payload = {"email": email, "password": password, "returnSecureToken": True}
@@ -66,12 +64,12 @@ def verify_id_token(id_token):
     try:
         decoded = auth.verify_id_token(id_token)
         return decoded['uid']
-    except:
+    except Exception:
         return None
 
-# ------------------------
+# ------------------------------------------------
 # Utility Functions
-# ------------------------
+# ------------------------------------------------
 def clean_text(t):
     t = re.sub(r'\s+', ' ', t)
     t = re.sub(r'http\S+', '', t)
@@ -132,24 +130,24 @@ def retrieve_context(user, query, model, top_k=3):
     D, I = index.search(np.array(q_emb), top_k)
     return [chunks[i] for i in I[0] if 0 <= i < len(chunks)]
 
-# ------------------------
+# ------------------------------------------------
 # Load Embedding Model
-# ------------------------
+# ------------------------------------------------
 @st.cache_resource
 def load_embed_model():
     return SentenceTransformer('all-MiniLM-L6-v2')
 
 model = load_embed_model()
 
-# ------------------------
+# ------------------------------------------------
 # Streamlit UI
-# ------------------------
+# ------------------------------------------------
 st.sidebar.title("Persona Studio")
 menu = st.sidebar.radio("Menu", ["Login", "Sign Up"])
 
-# ------------------------
+# ------------------------------------------------
 # SIGNUP
-# ------------------------
+# ------------------------------------------------
 if menu == "Sign Up":
     st.header("Create a new account")
     new_email = st.text_input("Email")
@@ -166,9 +164,9 @@ if menu == "Sign Up":
                 st.success("Account created! You can now log in.")
                 st.stop()
 
-# ------------------------
+# ------------------------------------------------
 # LOGIN
-# ------------------------
+# ------------------------------------------------
 elif menu == "Login":
     st.header("Login")
     email = st.text_input("Email")
@@ -185,9 +183,9 @@ elif menu == "Login":
             else:
                 st.error("Login failed")
 
-# ------------------------
+# ------------------------------------------------
 # Main App After Login
-# ------------------------
+# ------------------------------------------------
 if "uid" in st.session_state:
     uid = st.session_state["uid"]
     tabs = st.tabs(["Home", "Upload & Build", "Chat", "Manage"])
@@ -249,4 +247,3 @@ if "uid" in st.session_state:
         st.session_state.pop("uid")
         st.success("Logged out")
         st.experimental_rerun()
-
