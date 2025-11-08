@@ -34,7 +34,7 @@ if not firebase_admin._apps:
 DATA_DIR = Path("users")
 DATA_DIR.mkdir(exist_ok=True)
 
-FIREBASE_API_KEY = "YOUR_FIREBASE_WEB_API_KEY"  # Web API key from Firebase project settings
+FIREBASE_API_KEY = os.getenv("FIREBASE_API_KEY")  # Web API key from Firebase project settings
 
 # ------------------------
 # OpenAI Setup (Backend-only)
@@ -249,3 +249,4 @@ if "uid" in st.session_state:
         st.session_state.pop("uid")
         st.success("Logged out")
         st.experimental_rerun()
+
