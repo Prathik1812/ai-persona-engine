@@ -1,0 +1,9 @@
+streamlit
+firebase-admin
+requests
+sentence-transformers
+faiss-cpu
+openai
+PyPDF2
+python-docx
+numpy
