@@ -1,10 +1,9 @@
 streamlit
 firebase-admin
 numpy
-faiss-cpu==1.7.4.post2 --extra-index-url https://pypi.org/simple
+faiss-cpu==1.12.0
 sentence-transformers
 openai
 PyPDF2
 python-docx
 requests
-
