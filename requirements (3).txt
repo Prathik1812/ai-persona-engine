@@ -1,9 +1,9 @@
 streamlit
 firebase-admin
-requests
-sentence-transformers
+numpy
 faiss-cpu
+sentence-transformers
 openai
 PyPDF2
 python-docx
-numpy
+requests
